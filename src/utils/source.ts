@@ -1,3 +1,4 @@
+import { copy } from '@/utils/autox';
 export class ParseSource {
   content: string;
   data: any;
@@ -138,7 +139,7 @@ export class ParseSource {
       .join("\n");
   }
   toCopy() {
-    navigator.clipboard.writeText(this.toString());
+    copy(this.toString());
   }
   toDownload() {
     const blob = new Blob([this.toString()], { type: "text/plain;charset=utf-8" });

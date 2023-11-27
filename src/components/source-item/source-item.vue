@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { showPlayerDialog } from '@/components/my-player/my-palyer-dialog';
 import { ActionSheet, Snackbar } from '@varlet/ui';
+import { copy } from '@/utils/autox';
 defineProps<{
   source: {
     sourceName: string
@@ -29,7 +30,7 @@ const showSourceActions = (soucre) => {
             type: "success",
             content: "复制成功！"
           })
-          navigator.clipboard.writeText(soucre.url)
+          copy(soucre.url)
         }
       },
     ] as any

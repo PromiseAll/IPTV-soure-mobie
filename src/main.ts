@@ -1,3 +1,4 @@
+import "./assets/js/autox.sdk.v1.js";
 import { createApp } from "vue";
 import router from "./router/router";
 import "uno.css";
@@ -8,7 +9,7 @@ import MyDialog from "@/components/my-dialog/my-dialog";
 
 const app = createApp(App);
 app.use(router);
-app.use(MyDialog)
+app.use(MyDialog);
 app.mount("#app").$nextTick(() => {
   // const userStore = useUserStore()
   // userStore.getUserInfo()

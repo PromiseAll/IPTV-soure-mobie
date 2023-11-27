@@ -62,12 +62,12 @@ import text from './1.txt?raw'
 import { ref } from 'vue';
 import { ParseSource } from "@/utils/source";
 import { getPingUrl } from "@/utils/seppd";
+import { copy } from '@/utils/autox';
 import { ActionSheet, Dialog, Snackbar } from '@varlet/ui';
 import { createComponentDialog } from "@/components/my-dialog/my-dialog.ts";
-import MyPalyerDialog from '@/components/my-player/my-palyer-dialog.vue';
 import { showPlayerDialog } from '@/components/my-player/my-palyer-dialog';
 import axios from 'axios';
-import { clear } from 'console';
+
 const menuVisible = ref(false)
 let m3u8Parse = new ParseSource('')
 const listData = ref(m3u8Parse.data)
@@ -257,7 +257,8 @@ const showSourceActions = (soucre) => {
             type: "success",
             content: "复制成功！"
           })
-          navigator.clipboard.writeText(soucre.url)
+
+          copy(soucre.url)
         }
       },
       {
@@ -287,10 +288,8 @@ function clearAll() {
 
 const checkPing = () => {
   Snackbar({
-    forbidClick: false,
-    type: "loading",
+    type: "info",
     content: "检测中..."
-
   })
   const sources = m3u8Parse.getAllSources()
   getPingUrl(sources.map(source => source.url), (url, ping) => {
