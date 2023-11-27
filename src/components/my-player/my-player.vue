@@ -39,8 +39,8 @@ onMounted(() => {
       container: playerRef.value,
       url: props.url,
       autoplay: true,
-      fullscreen: true,
-      fullscreenWeb: true,
+      // fullscreen: true,
+      // fullscreenWeb: true,
       type: 'm3u8',
       customType: {
         m3u8: playM3u8,

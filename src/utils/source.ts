@@ -91,6 +91,7 @@ export class ParseSource {
     this.data
       .find(group => group.groupName == groupName)
       .channels.push({
+        groupName,
         channelName,
         sources: []
       });

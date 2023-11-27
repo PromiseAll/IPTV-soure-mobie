@@ -30,7 +30,7 @@ export default defineConfig({
     process.env.NODE_ENV === "production" && viteSingleFile()
   ],
   server: {
-    port: 1024,
+    port: 2014,
     host: "0.0.0.0"
   }
 });

@@ -6,7 +6,7 @@
     </var-app-bar>
     <div class="flex items-center justify-between p-2">
       <var-input class="flex-1 mr-2" variant="outlined" placeholder="请输入关键字" v-model="serchValue" size="small" />
-      <var-button @click="searchFn" type="primary" class="h-[10.5vw]">搜索</var-button>
+      <var-button @click="searchFn" type="primary" class="h-[10.9vw]">搜索</var-button>
     </div>
     <div class="flex-1 overflow-y-auto" :key="refreshKey">
       <var-loading description="LOADING" :loading="loading" class="h-100% w-100%">
