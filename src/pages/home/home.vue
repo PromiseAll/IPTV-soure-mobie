@@ -62,7 +62,9 @@ import text from './1.txt?raw'
 import { ref } from 'vue';
 import { ParseSource } from "@/utils/source";
 import { getPingUrl } from "@/utils/seppd";
-import { copy } from '@/utils/autox';
+import { copy, runAutox } from '@/utils/autox';
+import { getMacAddress } from '@/autox/get';
+
 import { ActionSheet, Dialog, Snackbar } from '@varlet/ui';
 import { createComponentDialog } from "@/components/my-dialog/my-dialog.ts";
 import { showPlayerDialog } from '@/components/my-player/my-palyer-dialog';
@@ -144,6 +146,9 @@ const showExportFile = () => {
 }
 
 const showGroupActions = (group) => {
+
+  getMacAddress()
+
   if (!group) return Snackbar.warning('请先添加分组')
   ActionSheet({
     actions: [
