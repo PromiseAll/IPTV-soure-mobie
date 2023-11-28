@@ -147,8 +147,6 @@ const showExportFile = () => {
 
 const showGroupActions = (group) => {
 
-  getMacAddress()
-
   if (!group) return Snackbar.warning('请先添加分组')
   ActionSheet({
     actions: [
@@ -333,13 +331,26 @@ const saveData = () => {
   })
 }
 const showAbout = () => {
-  Dialog({
-    title: '关于',
-    message: '酷安@明天是星期天欸',
-    cancelButton: false,
+  getMacAddress("1212").then((res) => {
+    Snackbar({
+      type: "success",
+      content: res
+    })
+  }).catch(err => {
+
+    Snackbar({
+      type: "error",
+      content: err
+    })
   })
+  // Dialog({
+  //   title: '关于',
+  //   message: '酷安@明天是星期天欸',
+  //   cancelButton: false,
+  // })
 }
 onMounted(() => {
   restoreData()
+
 });
 </script>
