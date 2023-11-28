@@ -22,6 +22,19 @@ export const runAutox = (fn: Function, data: string | object) => {
   });
 };
 
+export const registerRunWebHandler = () => {
+  window.$autox.registerHandler("runWeb", (params, callBack) => {
+    const { name, data } = JSON.parse(params);
+    console.log(name, data);
+    let result = {
+      success: false,
+      value: "ok",
+      error: document.createElement("div").ATTRIBUTE_NODE
+    };
+    return callBack(JSON.stringify(result));
+  });
+};
+
 try {
-  JSON.stringify;
+  registerRunWebHandler();
 } catch (error) {}

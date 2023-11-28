@@ -1,3 +1,5 @@
+import VConsole from "vconsole";
+const vConsole = new VConsole({ theme: "dark" });
 import "./assets/js/autox.sdk.v1.js";
 import { createApp } from "vue";
 import router from "./router/router";
