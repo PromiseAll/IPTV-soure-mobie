@@ -7,6 +7,7 @@ import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import { VarletUIResolver } from "unplugin-vue-components/resolvers";
 import { viteSingleFile } from "vite-plugin-singlefile";
+import legacy from "@vitejs/plugin-legacy";
 const alias = {
   "@": resolve("src")
 };
@@ -15,11 +16,23 @@ export default defineConfig({
     alias
   },
   plugins: [
+    // legacy({
+    //   targets: ["defaults", "not IE 11"],
+    //   polyfills:false
+    //   // renderModernChunks: false
+    // }),
     vue(),
     vueJsx(),
     UnoCSS(),
     AutoImport({
-      imports: ["vue", "@vueuse/core", "vue-router"],
+      imports: [
+        "vue",
+        "@vueuse/core",
+        "vue-router",
+        {
+          "my-deferred": [["default", "Deferred"]]
+        }
+      ],
       resolvers: [VarletUIResolver({ autoImport: true })],
       dts: "./src/types/auto-imports.d.ts"
     }),

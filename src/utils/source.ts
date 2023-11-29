@@ -1,42 +1,111 @@
-import { copy } from '@/utils/autox';
+import { copy, writeFile } from "@/autox/get";
+import { M3uParser } from "m3u-parser-generator";
 export class ParseSource {
   content: string;
   data: any;
   constructor(content) {
+    content = content + "";
     this.content = content;
-    this.data = this.parseContent(content);
+    if (content.includes("#EXTM3U")) {
+      this.data = this.parseByM3u(content);
+    } else {
+      this.data = this.parseByM3u(content);
+    }
+
     this.setAttribute();
   }
   parseContent(content) {
-    const lines = content
-      .split("\n")
-      .map(text => text.trim())
-      .filter(Boolean);
-    // console.log(lines);
-    const result = [];
-    //
-    let currentGroup = null;
-    lines.forEach(line => {
-      if (line.includes("#genre#")) {
-        const groupName = line.split(",").at(0).trim();
-        currentGroup = { groupName, channels: [] };
-        result.push(currentGroup);
-      } else {
-        const [channelName, url] = line.split(",").map(text => text.trim());
-        const channel = currentGroup.channels.find(channel => channel.channelName == channelName);
-        if (channel) {
-          channel.sources.push({ url });
+    if (!content) return [];
+    try {
+      const lines = content
+        .split("\n")
+        .map(text => text.trim())
+        .filter(Boolean);
+      // console.log(lines);
+      const result = [];
+      //
+      let currentGroup = null;
+      lines.forEach(line => {
+        if (line.includes("#genre#")) {
+          const groupName = line.split(",").at(0).trim();
+          currentGroup = { groupName, channels: [] };
+          result.push(currentGroup);
         } else {
-          currentGroup.channels.push({
-            channelName,
-            sources: [{ url }]
-          });
+          const [channelName, url] = line.split(",").map(text => text.trim());
+          const channel = currentGroup.channels.find(channel => channel.channelName == channelName);
+          if (channel) {
+            channel.sources.push({ url });
+          } else {
+            currentGroup.channels.push({
+              channelName,
+              sources: [{ url }]
+            });
+          }
         }
-      }
-    });
-
-    return result;
+      });
+      return result;
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
   }
+
+  // 转成data
+  parseByM3u(content) {
+    // 这是个m3u8文件
+    //   [{
+    //     "location": "http://[2409:8087:5e01:34::23]:6610/ZTE_CMS/00000001000000060000000000000459/index.m3u8?IAS",
+    //     "duration": -1,
+    //     "attributes": {
+    //         "group-title": "IPV6·4K"
+    //     },
+    //     "kodiProps": {},
+    //     "name": "爱上4K 「IPV6」"
+    // }....]
+    if (!content) return [];
+
+    try {
+      const dataArray = M3uParser.parse(content, true).medias;
+      // 进行分组
+      const group = Array.from(
+        new Set(
+          dataArray.map(item => {
+            return item.attributes["group-title"];
+          })
+        )
+      ).map(groupName => {
+        return {
+          groupName,
+          channels: dataArray
+            .filter(item => {
+              return item.attributes["group-title"] == groupName;
+            })
+            .map(channel => {
+              return {
+                groupName,
+                channelName: channel.name,
+                sources: dataArray
+                  .filter(item => {
+                    return item.name == channel.name;
+                  })
+                  .map((source, sources_index) => {
+                    return {
+                      groupName,
+                      sourceName: `信源-${sources_index + 1}`,
+                      url: source.location
+                    };
+                  })
+              };
+            })
+        };
+      });
+
+      return group;
+    } catch (error) {
+      return [];
+    }
+  }
+
   setAttribute() {
     // 给channel加上group
     this.data.forEach(group => {
@@ -62,6 +131,38 @@ export class ParseSource {
         return group.channels.map(channel => channel.sources).flat();
       })
       .flat();
+  }
+
+  // 删除重复源 使用set去重
+  deleteRepeatSources() {
+    this.data.forEach(group => {
+      group.channels.forEach(channel => {
+        channel.sources = [...new Set(channel.sources)];
+      });
+    });
+  }
+
+  // 删除超时源
+  deleteTimeoutSources() {
+    this.data.forEach(group => {
+      group.channels.forEach(channel => {
+        channel.sources = channel.sources.filter(source => source.ping != -1);
+      });
+    });
+  }
+
+  // 排序源
+  sortSources() {
+    this.data.forEach(group => {
+      group.channels.forEach(channel => {
+        channel.sources.sort((a, b) => {
+          // 检测ping并排序 从小到大 -1是超时无限大
+          if (a.ping == -1) return 1;
+          if (b.ping == -1) return -1;
+          return a.ping - b.ping;
+        });
+      });
+    });
   }
 
   renameGroup(oldName, newName) {
@@ -141,14 +242,7 @@ export class ParseSource {
   toCopy() {
     copy(this.toString());
   }
-  toDownload() {
-    const blob = new Blob([this.toString()], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "source.txt";
-    a.click();
-    URL.revokeObjectURL(url);
-    a.remove();
+  toDownload(pathName) {
+    return writeFile(pathName, this.toString());
   }
 }

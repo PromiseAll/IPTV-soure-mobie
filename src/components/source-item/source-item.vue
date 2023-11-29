@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { showPlayerDialog } from '@/components/my-player/my-palyer-dialog';
 import { ActionSheet, Snackbar } from '@varlet/ui';
-import { copy } from '@/utils/autox';
+import { copy } from "@/autox/get";
 defineProps<{
   source: {
     sourceName: string

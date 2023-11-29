@@ -9,12 +9,11 @@
             <var-icon name="menu" :size="24" />
           </var-button>
           <template #options>
-            <var-menu-option @click="showUrlImport" label="URL导入"></var-menu-option>
-            <var-menu-option @click="showTextImport" label="文本导入"></var-menu-option>
-            <var-menu-option @click="restoreData" label="恢复数据"></var-menu-option>
-            <var-menu-option @click="saveData" label="保存数据"></var-menu-option>
-            <var-menu-option @click="showExportText" label="导出(剪切板)"></var-menu-option>
-            <var-menu-option @click="checkPing" label="检测所有"></var-menu-option>
+            <var-menu-option @click="showImportActions" label="导入"></var-menu-option>
+            <var-menu-option @click="showExportActions" label="导出"></var-menu-option>
+            <var-menu-option @click="showOptimizeActions" label="优化"></var-menu-option>
+            <var-menu-option @click="saveData" label="保存"></var-menu-option>
+            <var-menu-option @click="checkPing" label="PING"></var-menu-option>
             <var-menu-option @click="clearAll" label="清空所有"></var-menu-option>
             <var-menu-option @click="showAbout" label="关于"></var-menu-option>
           </template>
@@ -52,24 +51,20 @@
           </var-collapse-item>
         </var-collapse>
       </div>
-
     </div>
-
   </div>
 </template>
 <script lang="tsx" setup>
-import text from './1.txt?raw'
 import { ref } from 'vue';
 import { ParseSource } from "@/utils/source";
 import { getPingUrl } from "@/utils/seppd";
-import { copy, runAutox } from '@/utils/autox';
-import { getMacAddress } from '@/autox/get';
-
+import { copy } from "@/autox/get";
+import { getTextToSelectFile } from '@/autox/get';
 import { ActionSheet, Dialog, Snackbar } from '@varlet/ui';
 import { createComponentDialog } from "@/components/my-dialog/my-dialog.ts";
 import { showPlayerDialog } from '@/components/my-player/my-palyer-dialog';
 import axios from 'axios';
-
+import localForage from "localforage";
 const menuVisible = ref(false)
 let m3u8Parse = new ParseSource('')
 const listData = ref(m3u8Parse.data)
@@ -97,53 +92,190 @@ const addGroup = () => {
   })
 }
 
-const showUrlImport = () => {
-  const url = ref()
-  createComponentDialog({
-    component: () => (<var-input v-model={url.value} placeholder="请输入URL" />),
-  }).then(() => {
-    Snackbar.loading('正在导入')
-    axios.get(url.value).then((res) => {
-      m3u8Parse = new ParseSource(res.data)
-      listData.value = m3u8Parse.data
-      Snackbar.success('导入完成')
-      Dialog({
-        message: '共导入' + m3u8Parse.getAllSources().length + '个源',
-        // confirmButton: false,
-        cancelButton: false,
-      })
-    }).catch(err => {
-      console.log(err);
-      Snackbar({
-        type: "error",
-        content: err.message
-      })
+// 导入
+const showImportActions = () => {
+  const showImportInfo = () => {
+    Dialog({
+      message: '共导入' + m3u8Parse.getAllSources().length + '个源',
+      cancelButton: false,
     })
-    refreshKey.value = Symbol()
+  }
+  const showUrlImport = () => {
+    const url = ref()
+    createComponentDialog({
+      component: () => (<var-input v-model={url.value} placeholder="请输入URL" />),
+    }).then(() => {
+      Snackbar.loading('正在导入')
+      axios.get(url.value).then((res) => {
+        m3u8Parse = new ParseSource(res.data)
+        listData.value = m3u8Parse.data
+        Snackbar.success('导入完成')
+        showImportInfo()
+      }).catch(err => {
+        console.log(err);
+        Snackbar({
+          type: "error",
+          content: err.message
+        })
+      })
+      refreshKey.value = Symbol()
+    })
+  }
+
+  const showTextImport = () => {
+    const text = ref()
+    createComponentDialog({
+      component: () => (<var-input textarea v-model={text.value} placeholder="请输入文本" />),
+    }).then(() => {
+      m3u8Parse = new ParseSource(text.value)
+      listData.value = m3u8Parse.data
+      showImportInfo()
+      refreshKey.value = Symbol()
+    })
+  }
+
+  const showfileImport = () => {
+    getTextToSelectFile().then((text) => {
+      m3u8Parse = new ParseSource(text)
+      listData.value = m3u8Parse.data
+      refreshKey.value = Symbol()
+    }).then(() => {
+      Snackbar.success('导入完成')
+      showImportInfo()
+    }).catch(err => {
+      Snackbar.error(err || '导入失败')
+    })
+  }
+
+  const localDataImport = () => {
+    restoreData()
+    showImportInfo()
+  }
+
+  ActionSheet({
+    actions: [
+      {
+        name: 'URL导入',
+        icon: 'chevron-right',
+        callback: () => {
+          showUrlImport()
+        }
+      },
+      {
+        name: '文件导入',
+        icon: 'chevron-right',
+        callback: () => {
+          showfileImport()
+        }
+      },
+      {
+        name: '剪切板导入',
+        icon: 'chevron-right',
+        callback: () => {
+          showTextImport()
+        }
+      },
+      {
+        name: '恢复数据',
+        icon: 'chevron-right',
+        callback: () => {
+          localDataImport()
+        }
+      }
+    ] as any
+  }).then((res: any) => {
+    res.callback && res.callback()
   })
 }
 
-const showTextImport = () => {
-  const text = ref()
-  createComponentDialog({
-    component: () => (<var-input textarea v-model={text.value} placeholder="请输入文本" />),
-  }).then(() => {
-    m3u8Parse = new ParseSource(text.value)
-    listData.value = m3u8Parse.data
-    refreshKey.value = Symbol()
+// 导出
+const showExportActions = () => {
+  const showExportText = () => {
+    m3u8Parse.toCopy()
+    Snackbar({
+      type: "success",
+      content: "已复制"
+    })
+  }
+  const showExportFile = () => {
+    const path = ref(`/sdcard/m3u8Checker/source_${Date.now()}.txt`)
+    createComponentDialog({
+      component: () => (<var-input v-model={path.value} placeholder="请输入保存路径" />),
+    }).then(() => {
+      return m3u8Parse.toDownload(path.value)
+    }).then(() => {
+      Snackbar.success(`保存成功`)
+    }).catch(err => {
+      Snackbar.error(err || '保存失败')
+    })
+  }
+  ActionSheet({
+    actions: [
+      {
+        name: '导出剪切板',
+        icon: 'chevron-right',
+        callback: () => {
+          showExportText()
+        }
+      },
+      {
+        name: '导出文件',
+        icon: 'chevron-right',
+        callback: () => {
+          showExportFile()
+        }
+      }
+    ] as any
+  }).then((res: any) => {
+    res.callback && res.callback()
   })
 }
 
-const showExportText = () => {
-  m3u8Parse.toCopy()
-  Snackbar({
-    type: "success",
-    content: "已复制"
+// 优化
+const showOptimizeActions = () => {
+  ActionSheet({
+    actions: [
+      {
+        name: '删除重复源',
+        icon: 'chevron-right',
+        callback: () => {
+          m3u8Parse.deleteRepeatSources()
+          Snackbar.success('成功')
+        }
+      },
+      {
+        name: '删除超时源',
+        icon: 'chevron-right',
+        callback: () => {
+          m3u8Parse.deleteTimeoutSources()
+          Snackbar.success('成功')
+        }
+      },
+      {
+        name: 'PING排序',
+        icon: 'chevron-right',
+        callback: () => {
+          m3u8Parse.sortSources()
+          Snackbar.success('成功')
+        }
+      },
+      {
+        name: '一键优化',
+        icon: 'chevron-right',
+        callback: () => {
+          m3u8Parse.deleteRepeatSources()
+          m3u8Parse.deleteTimeoutSources()
+          m3u8Parse.sortSources()
+          refreshKey.value = Symbol()
+          Snackbar.success('优化完成')
+        }
+      },
+    ] as any
+  }).then((res: any) => {
+    res.callback && res.callback()
   })
 }
-const showExportFile = () => {
-  m3u8Parse.toDownload()
-}
+
 
 const showGroupActions = (group) => {
 
@@ -289,16 +421,17 @@ function clearAll() {
 }
 
 
+// 检测ping并排序
 const checkPing = () => {
   Snackbar({
     type: "info",
-    content: "检测中..."
+    content: "检测中...需要几分钟"
   })
   const sources = m3u8Parse.getAllSources()
   getPingUrl(sources.map(source => source.url), (url, ping) => {
     // console.log(url, ping);
-    const currentSource = sources.find(source => source.url == url)
-    currentSource.ping = ping
+    const currentSource = sources.filter(source => source.url == url)
+    currentSource.forEach(source => source.ping = ping);
   }).then(() => {
     Snackbar({
       type: "success",
@@ -306,51 +439,34 @@ const checkPing = () => {
     })
     Dialog({
       message: '共检测' + sources.length + '个源 \n 有效源数:' + sources.filter(source => source.ping > -1).length + '个 \n 无效源数:' + sources.filter(source => source.ping == -1).length + '个',
-      // confirmButton: false,
       cancelButton: false,
     })
   })
 }
-
-
 // 恢复数据
 const restoreData = () => {
-  m3u8Parse = new ParseSource(localStorage.getItem('m3u8Parse') || '')
-  listData.value = m3u8Parse.data
-  Snackbar({
-    type: "success",
-    content: "已恢复"
+  localForage.getItem('m3u8Parse').then((text: string) => {
+    if (text) {
+      m3u8Parse = new ParseSource(text)
+      listData.value = m3u8Parse.data
+      Snackbar.success("已恢复")
+    }
   })
 }
 // 保存数据
 const saveData = () => {
-  localStorage.setItem('m3u8Parse', m3u8Parse.toString())
-  Snackbar({
-    type: "success",
-    content: "以保存"
+  localForage.setItem('m3u8Parse', m3u8Parse.toString()).then(() => {
+    Snackbar.success("已保存")
   })
 }
 const showAbout = () => {
-  getMacAddress("1212").then((res) => {
-    Snackbar({
-      type: "success",
-      content: res
-    })
-  }).catch(err => {
-
-    Snackbar({
-      type: "error",
-      content: err
-    })
+  Dialog({
+    title: '关于',
+    message: '酷安@明天是星期天欸',
+    cancelButton: false,
   })
-  // Dialog({
-  //   title: '关于',
-  //   message: '酷安@明天是星期天欸',
-  //   cancelButton: false,
-  // })
 }
 onMounted(() => {
   restoreData()
-
 });
 </script>

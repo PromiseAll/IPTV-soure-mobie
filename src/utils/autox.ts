@@ -9,7 +9,8 @@ export const copy = text => {
 };
 
 export const runAutox = (fn: Function, data: string | object) => {
-  data = typeof data == "object" ? JSON.stringify(data) : data;
+  console.log(typeof data == "object");
+  data = JSON.stringify(data);
   return new Promise<any>((resolve, reject) => {
     window.$autox.callHandler("runAutox", `(${fn.toString()})(${data})`, result => {
       const res = JSON.parse(result);

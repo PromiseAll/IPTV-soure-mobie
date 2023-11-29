@@ -6,7 +6,7 @@ defineProps<{
 
 const isConfirm = ref(false)
 const dialogVisible = ref(true)
-const instanceRef = ref({})
+const instanceRef = ref()
 const confirmClose = () => {
   console.log('confirmClose');
   dialogVisible.value = false
