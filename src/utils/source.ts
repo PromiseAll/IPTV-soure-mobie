@@ -9,7 +9,7 @@ export class ParseSource {
     if (content.includes("#EXTM3U")) {
       this.data = this.parseByM3u(content);
     } else {
-      this.data = this.parseByM3u(content);
+      this.data = this.parseContent(content);
     }
 
     this.setAttribute();
@@ -66,39 +66,44 @@ export class ParseSource {
 
     try {
       const dataArray = M3uParser.parse(content, true).medias;
-      // 进行分组
-      const group = Array.from(
-        new Set(
-          dataArray.map(item => {
-            return item.attributes["group-title"];
-          })
-        )
-      ).map(groupName => {
-        return {
-          groupName,
-          channels: dataArray
-            .filter(item => {
-              return item.attributes["group-title"] == groupName;
-            })
-            .map(channel => {
-              return {
-                groupName,
-                channelName: channel.name,
-                sources: dataArray
-                  .filter(item => {
-                    return item.name == channel.name;
-                  })
-                  .map((source, sources_index) => {
-                    return {
-                      groupName,
-                      sourceName: `信源-${sources_index + 1}`,
-                      url: source.location
-                    };
-                  })
-              };
-            })
-        };
+
+      const groupMap = new Map(); // 使用Map存储对应关系
+
+      // 遍历dataArray，构建groupMap
+      dataArray.forEach(item => {
+        const groupTitle = item.attributes["group-title"];
+        const channelName = item.name;
+        const location = item.location;
+
+        if (!groupMap.has(groupTitle)) {
+          groupMap.set(groupTitle, []);
+        }
+
+        const channels = groupMap.get(groupTitle);
+        const channel = channels.find(ch => ch.channelName === channelName);
+
+        if (channel) {
+          channel.sources.push({
+            sourceName: `信源-${channel.sources.length + 1}`,
+            url: location
+          });
+        } else {
+          channels.push({
+            groupName: groupTitle,
+            channelName: channelName,
+            sources: [{
+              sourceName: `信源-1`,
+              url: location
+            }]
+          });
+        }
       });
+
+      // 转换为数组形式
+      const group = Array.from(groupMap, ([groupName, channels]) => ({
+        groupName,
+        channels
+      }));
 
       return group;
     } catch (error) {

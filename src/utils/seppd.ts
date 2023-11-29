@@ -3,8 +3,8 @@ import pLimit from "p-limit";
 export function getPing(url: string) {
   const startTime = performance.now();
   return new Promise((resolve, reject) => {
-    axios
-      .get(url, { timeout: 10 * 1000, headers: { "cache-control": "no-cache" } })
+    const methods = url.includes(".mp4") || url.includes(".avi") || url.includes(".mkv") || url.includes(".mp3") || url.includes(".flv") ? "head" : "get";
+    axios[methods](url, { timeout: 10 * 1000, headers: { "cache-control": "no-cache" } })
       .then(() => {
         let loadTime = performance.now() - startTime;
         // 转成毫秒

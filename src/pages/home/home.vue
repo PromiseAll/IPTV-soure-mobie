@@ -55,6 +55,9 @@
   </div>
 </template>
 <script lang="tsx" setup>
+import text1 from './2.txt?raw'
+import text2 from './2.txt?raw'
+
 import { ref } from 'vue';
 import { ParseSource } from "@/utils/source";
 import { getPingUrl } from "@/utils/seppd";
@@ -423,25 +426,33 @@ function clearAll() {
 
 // 检测ping并排序
 const checkPing = () => {
-  Snackbar({
-    type: "info",
-    content: "检测中...需要几分钟"
+  Dialog({
+    message: '是否开始检测？如果源数量比较多的话耗时可能较长',
+    onConfirm: () => {
+      Snackbar({
+        type: "info",
+        content: "检测中...需要几分钟"
+      })
+      const sources = m3u8Parse.getAllSources()
+      getPingUrl(sources.map(source => source.url), (url, ping) => {
+        // console.log(url, ping);
+        const currentSource = sources.filter(source => source.url == url)
+        currentSource.forEach(source => source.ping = ping);
+      }).then(() => {
+        Snackbar({
+          type: "success",
+          content: "检测完成"
+        })
+        Dialog({
+          message: '共检测' + sources.length + '个源 \n 有效源数:' + sources.filter(source => source.ping > -1).length + '个 \n 无效源数:' + sources.filter(source => source.ping == -1).length + '个',
+          cancelButton: false,
+        })
+      })
+    }
   })
-  const sources = m3u8Parse.getAllSources()
-  getPingUrl(sources.map(source => source.url), (url, ping) => {
-    // console.log(url, ping);
-    const currentSource = sources.filter(source => source.url == url)
-    currentSource.forEach(source => source.ping = ping);
-  }).then(() => {
-    Snackbar({
-      type: "success",
-      content: "检测完成"
-    })
-    Dialog({
-      message: '共检测' + sources.length + '个源 \n 有效源数:' + sources.filter(source => source.ping > -1).length + '个 \n 无效源数:' + sources.filter(source => source.ping == -1).length + '个',
-      cancelButton: false,
-    })
-  })
+
+
+
 }
 // 恢复数据
 const restoreData = () => {
@@ -449,7 +460,7 @@ const restoreData = () => {
     if (text) {
       m3u8Parse = new ParseSource(text)
       listData.value = m3u8Parse.data
-      Snackbar.success("已恢复")
+      Snackbar.success("已从本地恢复")
     }
   })
 }
