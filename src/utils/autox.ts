@@ -3,17 +3,17 @@ declare global {
     $autox: any;
   }
 }
-import { ActionSheet, Dialog, Snackbar } from "@varlet/ui";
 export const copy = text => {
   window.$autox.callHandler("copy", text);
 };
 
 export const runAutox = (fn: Function, data: string | object) => {
-  console.log(typeof data == "object");
+  // console.log(typeof data == "object");
   data = JSON.stringify(data);
   return new Promise<any>((resolve, reject) => {
     window.$autox.callHandler("runAutox", `(${fn.toString()})(${data})`, result => {
       const res = JSON.parse(result);
+      // console.log("res",res);
       if (res.success) {
         resolve(res.value);
       } else {

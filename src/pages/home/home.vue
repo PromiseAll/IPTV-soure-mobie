@@ -57,7 +57,6 @@
 <script lang="tsx" setup>
 import text1 from './2.txt?raw'
 import text2 from './2.txt?raw'
-
 import { ref } from 'vue';
 import { ParseSource } from "@/utils/source";
 import { getPingUrl } from "@/utils/seppd";
