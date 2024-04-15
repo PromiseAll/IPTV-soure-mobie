@@ -1,17 +1,16 @@
 export function getSourcesByHtml(htmlContent) {
-  const dom = document.createElement("div");
+  const dom = document.createElement('div');
   dom.innerHTML = htmlContent;
-  const result = dom.querySelectorAll(".tables .result");
-
+  const result = dom.querySelectorAll('.tables .result');
   const sources = Array.from(result)
     .map((item, index) => {
-      const url = item.querySelector(`.m3u8 tr:nth-child(1) td:nth-child(2)`)?.textContent;
-      const sourceName = item.querySelector(`.channel a div`)?.textContent;
+      const url = item.querySelector(`div:nth-child(3)`)?.textContent;
+      const sourceName = item.querySelector(`.channel`)?.textContent;
       if (!url) return null;
       return {
-        url: item.querySelector(`.m3u8 tr:nth-child(1) td:nth-child(2)`)?.textContent,
-        sourceName: item.querySelector(`.channel a div`)?.textContent,
-        ping:null
+        url,
+        sourceName,
+        ping: null,
       };
     })
     .filter(Boolean);
