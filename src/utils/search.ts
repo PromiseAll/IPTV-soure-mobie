@@ -4,8 +4,9 @@ export function getSourcesByHtml(htmlContent) {
   const result = dom.querySelectorAll('.tables .result');
   const sources = Array.from(result)
     .map((item, index) => {
-      const url = item.querySelector(`div:nth-child(3)`)?.textContent;
+      const url = item.querySelector(`tba:nth-child(2)`)?.textContent;
       const sourceName = item.querySelector(`.channel`)?.textContent;
+      // console.log(sourceName,url);
       if (!url) return null;
       return {
         url,

@@ -19,8 +19,6 @@ declare module 'vue' {
     VarButton: typeof import('@varlet/ui')['_ButtonComponent']
     VarCell: typeof import('@varlet/ui')['_CellComponent']
     VarChip: typeof import('@varlet/ui')['_ChipComponent']
-    VarCollapse: typeof import('@varlet/ui')['_CollapseComponent']
-    VarCollapseItem: typeof import('@varlet/ui')['_CollapseItemComponent']
     VarDialog: typeof import('@varlet/ui')['_DialogComponent']
     VarIcon: typeof import('@varlet/ui')['_IconComponent']
     VarInput: typeof import('@varlet/ui')['_InputComponent']
@@ -28,7 +26,6 @@ declare module 'vue' {
     VarMenuOption: typeof import('@varlet/ui')['_MenuOptionComponent']
     VarMenuSelect: typeof import('@varlet/ui')['_MenuSelectComponent']
     VarResult: typeof import('@varlet/ui')['_ResultComponent']
-    VarTab: typeof import('@varlet/ui')['_TabComponent']
-    VarTabs: typeof import('@varlet/ui')['_TabsComponent']
+    VarSpace: typeof import('@varlet/ui')['_SpaceComponent']
   }
 }
